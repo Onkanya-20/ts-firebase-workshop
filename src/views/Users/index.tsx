@@ -10,7 +10,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 interface Column {
-  id: 'id' | 'firstName' | 'lastName' | 'age' | 'action';
+  id: 'id' | 'firstName' | 'lastName' | 'age';
   label: string;
   minWidth?: number;
   align?: 'right';
@@ -27,11 +27,6 @@ const columns: Column[] = [
     minWidth: 170,
     align: 'right',
     format: (value: number) => value.toLocaleString('en-US')
-  },
-  {
-    id: 'action',
-    label: 'Action',
-    minWidth: 100
   }
 ];
 
@@ -40,7 +35,6 @@ interface User {
   firstName: string;
   lastName: string;
   age: string;
-  action: any;
 }
 
 const Users: React.FC = () => {
@@ -48,6 +42,10 @@ const Users: React.FC = () => {
   useEffect(() => {
     reqUser().then((response: any) => setUsers(response));
   }, []);
+
+  const handleDelete = (): void => {
+    console.log('delete');
+  };
 
   return (
     <Table stickyHeader aria-label="sticky table">
@@ -79,7 +77,7 @@ const Users: React.FC = () => {
                 );
               })}
               <TableCell>
-                <IconButton aria-label="delete">
+                <IconButton aria-label="delete" onClick={handleDelete}>
                   <DeleteIcon />
                 </IconButton>
               </TableCell>

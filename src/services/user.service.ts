@@ -5,7 +5,6 @@ const userDb = db.collection('users');
 const reqUser = (): Promise<unknown> => {
   return userDb.get().then(querySnapshot => {
     return querySnapshot.docs.map(doc => {
-      console.log(doc.id, doc.data());
       return {
         id: doc.id,
         ...doc.data()
