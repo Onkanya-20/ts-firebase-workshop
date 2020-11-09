@@ -6,9 +6,11 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import IconButton from '@material-ui/core/IconButton';
+import DeleteIcon from '@material-ui/icons/Delete';
 
 interface Column {
-  id: 'id' | 'firstName' | 'lastName' | 'age';
+  id: 'id' | 'firstName' | 'lastName' | 'age' | 'action';
   label: string;
   minWidth?: number;
   align?: 'right';
@@ -25,6 +27,11 @@ const columns: Column[] = [
     minWidth: 170,
     align: 'right',
     format: (value: number) => value.toLocaleString('en-US')
+  },
+  {
+    id: 'action',
+    label: 'Action',
+    minWidth: 100
   }
 ];
 
@@ -33,6 +40,7 @@ interface User {
   firstName: string;
   lastName: string;
   age: string;
+  action: any;
 }
 
 const Users: React.FC = () => {
@@ -70,6 +78,11 @@ const Users: React.FC = () => {
                   </TableCell>
                 );
               })}
+              <TableCell>
+                <IconButton aria-label="delete">
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
             </TableRow>
           );
         })}
