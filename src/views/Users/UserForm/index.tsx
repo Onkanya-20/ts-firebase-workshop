@@ -1,24 +1,19 @@
 import React from 'react';
 import { Form } from 'react-final-form';
-import { reqCreateUser } from 'services/user.service';
 import { TextField } from 'mui-rff';
 import Box from '@material-ui/core/Box';
 import Button from '@material-ui/core/Button';
 import SaveIcon from '@material-ui/icons/Save';
-const Register: React.FC = () => {
-  const handleRegister = (
-    values: Partial<unknown>,
-    form: { reset: (data: Partial<unknown>) => void }
-  ) => {
-    return reqCreateUser(values).then(() => {
-      setTimeout(() => {
-        form.reset({});
-      }, 100);
-    });
-  };
+
+type Props = {
+  initValues: object;
+  onCreate: (values: Partial<unknown>, form: any) => void;
+};
+const Register: React.FC<Props> = ({ initValues = {}, onCreate }) => {
   return (
     <Form
-      onSubmit={handleRegister}
+      onSubmit={onCreate}
+      initialValues={initValues}
       render={({ handleSubmit, pristine }) => (
         <form onSubmit={handleSubmit}>
           <TextField

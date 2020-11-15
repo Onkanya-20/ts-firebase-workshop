@@ -1,91 +1,101 @@
-import React, { useEffect, useState } from 'react';
-import { reqUser } from 'services/user.service';
+import React, { useEffect, useState, useCallback } from 'react';
 
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import IconButton from '@material-ui/core/IconButton';
-import DeleteIcon from '@material-ui/icons/Delete';
+import {
+  reqCreateUser,
+  reqUser,
+  reqDeleteUser,
+  reqUserById,
+  reqUpdateUser,
+  User
+} from 'services/user.service';
 
-interface Column {
-  id: 'id' | 'firstName' | 'lastName' | 'age';
-  label: string;
-  minWidth?: number;
-  align?: 'right';
-  format?: (value: number) => string;
-}
+import { useConfirm } from 'material-ui-confirm';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import Button from '@material-ui/core/Button';
 
-const columns: Column[] = [
-  { id: 'id', label: 'Id', minWidth: 170 },
-  { id: 'firstName', label: 'First Name', minWidth: 170 },
-  { id: 'lastName', label: 'Last Name', minWidth: 100 },
-  {
-    id: 'age',
-    label: 'Age',
-    minWidth: 170,
-    align: 'right',
-    format: (value: number) => value.toLocaleString('en-US')
-  }
-];
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  age: string;
-}
+import UserList from './UserList';
+import UserForm from './UserForm';
 
 const Users: React.FC = () => {
+  const confirm = useConfirm();
   const [users, setUsers] = useState<User[]>([]);
+  const [open, setOpen] = useState(false);
+  const [initValues, setInitValues] = useState({});
+
   useEffect(() => {
     reqUser().then((response: any) => setUsers(response));
   }, []);
 
-  const handleDelete = (): void => {
-    console.log('delete');
+  const fetchData = () => {
+    return reqUser().then((response: any) => setUsers(response));
+  };
+
+  const handleCreateUser = (
+    values: Partial<unknown>,
+    form: { reset: (data: Partial<unknown>) => void }
+  ) => {
+    if (Object.keys(initValues).length > 0) {
+      return reqUpdateUser(values)
+        .then(() => {
+          fetchData();
+          setTimeout(() => {
+            form.reset({});
+          }, 100);
+        })
+        .catch(() => {})
+        .finally(() => {
+          setOpen(false);
+          setInitValues({});
+        });
+    }
+
+    return reqCreateUser(values)
+      .then(() => {
+        fetchData();
+        setTimeout(() => {
+          form.reset({});
+        }, 100);
+      })
+      .catch(() => {})
+      .finally(() => {
+        setOpen(false);
+        setInitValues({});
+      });
+  };
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      return confirm({
+        title: 'Confirmation!',
+        description: `Are you sure to delete user id: ${id}`
+      })
+        .then(() => reqDeleteUser(id))
+        .catch(() => {})
+        .finally(() => fetchData());
+    },
+    [confirm]
+  );
+
+  const handleUpdate = (id: string) => {
+    return reqUserById(id).then((response: any) => {
+      setInitValues(response);
+      setOpen(true);
+    });
   };
 
   return (
-    <Table stickyHeader aria-label="sticky table">
-      <TableHead>
-        <TableRow>
-          {columns.map(column => (
-            <TableCell
-              key={column.id}
-              align={column.align}
-              style={{ minWidth: column.minWidth }}
-            >
-              {column.label}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {users.map((row, index) => {
-          return (
-            <TableRow hover role="checkbox" tabIndex={-1} key={`user-${index}`}>
-              {columns.map(column => {
-                const value = row[column.id];
-                return (
-                  <TableCell key={column.id} align={column.align}>
-                    {column.format && typeof value === 'number'
-                      ? column.format(value)
-                      : value}
-                  </TableCell>
-                );
-              })}
-              <TableCell>
-                <IconButton aria-label="delete" onClick={handleDelete}>
-                  <DeleteIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <>
+      <Button variant="outlined" color="primary" onClick={() => setOpen(true)}>
+        Open form dialog
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogContent>
+          <UserForm initValues={initValues} onCreate={handleCreateUser} />
+        </DialogContent>
+      </Dialog>
+      <UserList users={users} onDelete={handleDelete} onUpdate={handleUpdate} />
+    </>
   );
 };
 
